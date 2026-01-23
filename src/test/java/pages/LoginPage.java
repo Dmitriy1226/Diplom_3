@@ -13,19 +13,13 @@ public class LoginPage {
     }
 
     // Поле Email
-    private final By emailInput = By.xpath("//input[@name='name']");
+    private final By emailInput = By.xpath("//input[@name='name' or @type='text']");
 
     // Поле Пароль
-    private final By passwordInput = By.xpath("//input[@name='Пароль']");
+    private final By passwordInput = By.xpath("//input[@name='Пароль' or @type='password']");
 
     // Кнопка Войти
     private final By loginButton = By.xpath("//button[text()='Войти']");
-
-    // Ссылка Зарегистрироваться
-    private final By registerLink = By.xpath("//a[text()='Зарегистрироваться']");
-
-    // Ссылка Восстановить пароль
-    private final By forgotPasswordLink = By.xpath("//a[text()='Восстановить пароль']");
 
     @Step("Ввод email")
     public void setEmail(String email) {
@@ -42,13 +36,10 @@ public class LoginPage {
         driver.findElement(loginButton).click();
     }
 
-    @Step("Перейти к регистрации")
-    public void clickRegisterLink() {
-        driver.findElement(registerLink).click();
-    }
-
-    @Step("Перейти к восстановлению пароля")
-    public void clickForgotPasswordLink() {
-        driver.findElement(forgotPasswordLink).click();
+    @Step("Авторизация пользователя")
+    public void login(String email, String password) {
+        setEmail(email);
+        setPassword(password);
+        clickLoginButton();
     }
 }
