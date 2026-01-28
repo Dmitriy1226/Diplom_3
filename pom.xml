@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -10,13 +10,16 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
 
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
     <selenium.version>4.16.1</selenium.version>
     <allure.version>2.24.0</allure.version>
+    <restassured.version>5.5.0</restassured.version>
+    <webdrivermanager.version>5.6.3</webdrivermanager.version>
+    <junit.version>4.13.2</junit.version>
   </properties>
 
   <dependencies>
@@ -25,7 +28,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.2</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -40,10 +43,17 @@
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
       <artifactId>webdrivermanager</artifactId>
-      <version>5.6.3</version>
+      <version>${webdrivermanager.version}</version>
     </dependency>
 
-    <!-- Allure -->
+    <!-- Rest Assured (нужен в main, поэтому БЕЗ scope=test) -->
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>${restassured.version}</version>
+    </dependency>
+
+    <!-- Allure JUnit4 -->
     <dependency>
       <groupId>io.qameta.allure</groupId>
       <artifactId>allure-junit4</artifactId>
@@ -51,27 +61,53 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Rest Assured -->
+    <!-- Allure + RestAssured (если используешь фильтр для API запросов) -->
     <dependency>
-      <groupId>io.rest-assured</groupId>
-      <artifactId>rest-assured</artifactId>
-      <version>5.4.0</version>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-rest-assured</artifactId>
+      <version>${allure.version}</version>
+      <scope>test</scope>
     </dependency>
-
 
   </dependencies>
 
   <build>
     <plugins>
 
-      <!-- Surefire -->
+      <!-- Компилятор: фиксируем UTF-8 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+
+      <!-- Запуск тестов + Allure results -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
+        <configuration>
+          <properties>
+            <property>
+              <name>listener</name>
+              <value>io.qameta.allure.junit4.AllureJunit4</value>
+            </property>
+          </properties>
+
+          <systemPropertyVariables>
+            <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+          </systemPropertyVariables>
+
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
       </plugin>
 
-      <!-- Allure plugin -->
+      <!-- Allure Maven plugin -->
       <plugin>
         <groupId>io.qameta.allure</groupId>
         <artifactId>allure-maven</artifactId>

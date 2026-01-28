@@ -3,12 +3,12 @@ package tests;
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import support.DriverFactory;
 
 import java.time.Duration;
 
-public class BaseUiTest {
+public abstract class BaseUiTest {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
@@ -18,7 +18,9 @@ public class BaseUiTest {
 
     @Before
     public void setUp() {
-        driver = new ChromeDriver();
+        String browser = System.getProperty("browser", "chrome");
+
+        driver = DriverFactory.getDriver(browser);
         wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
         userEmail = System.currentTimeMillis() + "@test.ru";
@@ -29,6 +31,8 @@ public class BaseUiTest {
 
     @After
     public void tearDown() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 }
