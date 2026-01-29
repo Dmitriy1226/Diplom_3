@@ -4,3 +4,4 @@ target/
 .DS_Store
 !target/allure-results/
 !target/allure-results/**
+Diplom_3/
