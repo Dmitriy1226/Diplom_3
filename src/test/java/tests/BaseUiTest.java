@@ -3,36 +3,31 @@ package tests;
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import support.DriverFactory;
 
 import java.time.Duration;
 
-public abstract class BaseUiTest {
+public class BaseUiTest {
 
     protected WebDriver driver;
-    protected WebDriverWait wait;
-
-    protected String userEmail;
-    protected String userPassword;
 
     @Before
     public void setUp() {
-        String browser = System.getProperty("browser", "chrome");
+        driver = DriverFactory.getDriver(System.getProperty("browser", "chrome"));
 
-        driver = DriverFactory.getDriver(browser);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-
-        userEmail = System.currentTimeMillis() + "@test.ru";
-        userPassword = "123456";
-
+        // критично для флапа: не наследуем “старые” сессии
+        driver.manage().deleteAllCookies();
         driver.manage().window().maximize();
+
+        // таймауты на всякий
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+        driver.manage().timeouts().scriptTimeout(Duration.ofSeconds(30));
+        // implicit wait не используем (чтобы не мешал WebDriverWait)
+        driver.manage().timeouts().implicitlyWait(Duration.ZERO);
     }
 
     @After
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        if (driver != null) driver.quit();
     }
 }

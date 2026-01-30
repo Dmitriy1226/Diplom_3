@@ -1,35 +1,57 @@
 package support;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
 public class DriverFactory {
 
     public static WebDriver getDriver(String browser) {
+        if ("yandex".equalsIgnoreCase(browser)) {
+            throw new IllegalStateException("Пока запускаем только Chrome. Для Yandex вернёмся после стабилизации.");
+        }
+
         ChromeOptions options = new ChromeOptions();
 
-        if ("yandex".equalsIgnoreCase(browser)) {
-            // путь к Yandex browser.exe
-            String yandexBinary = System.getProperty("yandex.binary");
-            if (yandexBinary == null || yandexBinary.isBlank()) {
-                throw new IllegalStateException(
-                        "Для Yandex Browser задай путь к browser.exe через -Dyandex.binary=\"C:\\\\...\\\\browser.exe\""
-                );
-            }
-            options.setBinary(yandexBinary);
+        System.out.println("### DriverFactory USED ###");
+        System.out.println("### browser param = " + browser + " ###");
+        options.addArguments("--lang=ru");
+        options.addArguments("--disable-notifications");
+        options.addArguments("--disable-popup-blocking");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1280,900");
 
-            // ВАЖНО: драйвер должен совпадать с версией Chromium у Яндекс.Браузера
-            // По умолчанию ставим 142 (как у тебя в логах), но можно переопределить параметром:
-            // -Dbrowser.version=142
-            String browserVersion = System.getProperty("browser.version", "142");
-            WebDriverManager.chromedriver().browserVersion(browserVersion).setup();
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
 
-        } else {
-            // обычный Chrome — можно брать актуальный драйвер
-            WebDriverManager.chromedriver().setup();
+        // Часто нужно на новых Chrome/Driver
+        options.addArguments("--remote-allow-origins=*");
+
+        // Чистый профиль
+        try {
+            Path profileDir = Files.createTempDirectory("sb-profile-");
+            options.addArguments("--user-data-dir=" + profileDir.toAbsolutePath());
+        } catch (Exception ignored) {
         }
+
+        // prefs: отключаем восстановление сессии и прочие "помощники"
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("credentials_enable_service", false);
+        prefs.put("profile.password_manager_enabled", false);
+        prefs.put("translate.enabled", false);
+
+        // 4 = открыть новую вкладку (не восстанавливать)
+        prefs.put("session.restore_on_startup", 4);
+
+        // убрать “Chrome управляется организацией” это не снимет, но подсказки отключит
+        prefs.put("browser.show_home_button", false);
+
+        options.setExperimentalOption("prefs", prefs);
 
         return new ChromeDriver(options);
     }
