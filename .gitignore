@@ -2,6 +2,9 @@
 *.iml
 target/
 .DS_Store
-!target/allure-results/
-!target/allure-results/**
-Diplom_3/
+
+.allure/
+allure-results/
+allure-report/
+target/allure-results/
+target/allure-report/
