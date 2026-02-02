@@ -1,5 +1,6 @@
 package pages;
 
+import io.qameta.allure.Step;
 import org.junit.Assert;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -14,30 +15,25 @@ public class RegistrationPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
 
-    // Страница регистрации (хедер/форма)
-    private final By registerHeader = By.xpath("//*[self::h2 or self::h1][contains(.,'Регистрация')]");
+    private final By registerHeader =
+            By.xpath("//*[self::h2 or self::h1][contains(.,'Регистрация')]");
     private final By authForm = By.cssSelector("form");
 
-    // Ошибка про пароль
-    private final By invalidPasswordError = By.xpath(
-            "//*[contains(.,'Некорректный пароль') or (contains(.,'Некорректный') and contains(.,'пароль'))]"
-    );
+    private final By invalidPasswordError =
+            By.xpath("//*[contains(.,'Некорректный пароль') or (contains(.,'Некорректный') and contains(.,'пароль'))]");
 
-    // Кнопка "Зарегистрироваться"
-    private final By registerButton = By.xpath("//button[.//span[contains(.,'Зарегистрироваться')] or contains(.,'Зарегистрироваться')]");
+    private final By registerButton =
+            By.xpath("//button[.//span[contains(.,'Зарегистрироваться')] or contains(.,'Зарегистрироваться')]");
 
     public RegistrationPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
-    /** Ждём, что мы реально на странице регистрации и форма готова */
+    @Step("Открыта страница регистрации")
     public void waitForOpen() {
         try {
-            // ждём либо URL /register, либо заголовок "Регистрация"
             wait.until(d -> d.getCurrentUrl().contains("/register") || isPresent(registerHeader));
-
-            // форма должна быть в DOM и видимой
             wait.until(ExpectedConditions.presenceOfElementLocated(authForm));
             wait.until(ExpectedConditions.visibilityOfElementLocated(authForm));
         } catch (TimeoutException e) {
@@ -46,6 +42,7 @@ public class RegistrationPage {
         }
     }
 
+    @Step("Заполнить форму регистрации: имя={name}, email={email}")
     public void fillForm(String name, String email, String password) {
         waitForOpen();
 
@@ -58,6 +55,7 @@ public class RegistrationPage {
         typeSmart(passInput, password);
     }
 
+    @Step("Нажать кнопку 'Зарегистрироваться'")
     public void clickRegister() {
         try {
             WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(registerButton));
@@ -68,9 +66,8 @@ public class RegistrationPage {
         }
     }
 
-    /** После клика на регистрацию: убеждаемся, что НЕ появилась ошибка пароля */
+    @Step("Проверить, что ошибка некорректного пароля не отображается")
     public void assertNoInvalidPasswordError() {
-        // ждём короткое время: если ошибка должна появиться, она появится быстро
         try {
             new WebDriverWait(driver, Duration.ofSeconds(2))
                     .until(ExpectedConditions.presenceOfElementLocated(invalidPasswordError));
@@ -81,13 +78,13 @@ public class RegistrationPage {
         List<WebElement> errors = driver.findElements(invalidPasswordError);
         if (!errors.isEmpty() && errors.stream().anyMatch(WebElement::isDisplayed)) {
             String text = errors.get(0).getText();
-            Assert.fail("Появилась ошибка про пароль: '" + text + "'. Проверь пароль (должен быть >= 6 символов). URL=" + driver.getCurrentUrl());
+            Assert.fail("Появилась ошибка про пароль: '" + text +
+                    "'. Пароль должен быть не менее 6 символов. URL=" + driver.getCurrentUrl());
         }
     }
 
-    // -------------------- helpers --------------------
+    // ---------- helpers ----------
 
-    /** Находит input, который относится к label с текстом (Имя/Email/Пароль) */
     private WebElement findInputByLabel(String labelText) {
         By byLabelFollowingInput = By.xpath(
                 "//*[self::label or self::p or self::span][normalize-space()='" + labelText + "']" +
@@ -108,7 +105,6 @@ public class RegistrationPage {
             el = firstDisplayed(driver.findElements(byContains));
             if (el != null) return wait.until(ExpectedConditions.elementToBeClickable(el));
 
-            // fallback по порядку: Имя/Email/Пароль — обычно первые три
             List<WebElement> inputs = driver.findElements(allInputs);
             inputs.removeIf(i -> !i.isDisplayed() || !i.isEnabled());
 
@@ -119,10 +115,10 @@ public class RegistrationPage {
             }
 
             dumpState("findInputByLabel(" + labelText + ") NOT FOUND");
-            Assert.fail("Не нашёл input для поля '" + labelText + "'. URL=" + driver.getCurrentUrl());
+            Assert.fail("Не найдено поле '" + labelText + "'. URL=" + driver.getCurrentUrl());
             return null;
         } catch (TimeoutException e) {
-            dumpState("findInputByLabel(" + labelText + ") TIMEOUT clickable");
+            dumpState("findInputByLabel(" + labelText + ") TIMEOUT");
             throw e;
         }
     }
@@ -141,7 +137,6 @@ public class RegistrationPage {
             if (value == null || value.trim().isEmpty()) {
                 jsSetValue(el, text);
             }
-
         } catch (Exception e) {
             dumpState("typeSmart() ERROR");
             throw e;
@@ -158,7 +153,8 @@ public class RegistrationPage {
     }
 
     private void scrollIntoView(WebElement el) {
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", el);
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView({block:'center'});", el);
     }
 
     private void jsSetValue(WebElement el, String value) {
