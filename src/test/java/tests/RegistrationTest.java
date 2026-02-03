@@ -7,6 +7,8 @@ import pages.MainPage;
 import pages.RegistrationPage;
 import support.ApiUserHelper;
 
+import static org.junit.Assert.assertTrue;
+
 public class RegistrationTest extends BaseUiTest {
 
     private final ApiUserHelper api = new ApiUserHelper();
@@ -25,42 +27,68 @@ public class RegistrationTest extends BaseUiTest {
         }
 
         api.deleteUser(registeredAccessToken);
+
+        // чтобы следующий тест случайно не унаследовал данные
+        registeredEmail = null;
+        registeredPassword = null;
+        registeredAccessToken = null;
+    }
+
+    private RegistrationPage openRegisterForm(String baseUrl) {
+        MainPage main = new MainPage(driver);
+        main.open(baseUrl);
+        main.goToLogin(baseUrl);
+
+        LoginPage login = new LoginPage(driver);
+        login.clickRegisterLink();
+
+        RegistrationPage reg = new RegistrationPage(driver);
+        reg.waitForOpen();
+        return reg;
     }
 
     @Test
     public void registrationShouldBeSuccessful() {
-        String baseUrl = BASE_URL; // берём из BaseUiTest (ты уже вынес в константу)
+        String baseUrl = BASE_URL; // берём из BaseUiTest
 
         registeredEmail = "test_" + System.currentTimeMillis() + "@mail.ru";
         registeredPassword = "123456";
         String name = "Test User";
 
-        MainPage main = new MainPage(driver);
-        main.open(baseUrl);
+        RegistrationPage reg = openRegisterForm(baseUrl);
 
-        // 1) Переходим на логин
-        main.goToLogin(baseUrl);
-
-        // 2) С логина кликаем "Зарегистрироваться"
-        LoginPage login = new LoginPage(driver);
-        login.clickRegisterLink();
-
-        // 3) Ждём открытия страницы регистрации (в Page Object)
-        RegistrationPage reg = new RegistrationPage(driver);
-        reg.waitForOpen();
-
-        // 4) Регистрация
+        // Регистрация
         reg.fillForm(name, registeredEmail, registeredPassword);
         reg.clickRegister();
 
-        // 5) Проверяем, что не показалась ошибка "Некорректный пароль"
+        // Не должно быть ошибки про пароль
         reg.assertNoInvalidPasswordError();
 
-        // 6) После успешной регистрации возвращает на логин — проверяем форму логина
+        // После успешной регистрации возвращает на логин — проверяем форму логина
         LoginPage loginAfter = new LoginPage(driver);
         loginAfter.assertLoginFormVisible();
 
-        // 7) (опционально) заранее получим токен, чтобы @After точно удалил
+        // заранее получим токен, чтобы @After точно удалил
         registeredAccessToken = api.loginAndGetAccessToken(registeredEmail, registeredPassword);
+    }
+
+    @Test
+    public void registrationShouldFail_whenPasswordIsTooShort() {
+        String baseUrl = BASE_URL;
+
+        registeredEmail = "test_" + System.currentTimeMillis() + "@mail.ru";
+        registeredPassword = "12345"; // < 6 символов
+        String name = "Test User";
+
+        RegistrationPage reg = openRegisterForm(baseUrl);
+
+        reg.fillForm(name, registeredEmail, registeredPassword);
+        reg.clickRegister();
+
+        // Тут наоборот: ошибка ДОЛЖНА появиться
+        // (В твоём PageObject есть только assertNoInvalidPasswordError(),
+        // поэтому проверим через URL + простой assert, и добавим в RegistrationPage отдельный метод на шаге 2.1 ниже)
+        assertTrue("Ожидали остаться на странице /register при коротком пароле. URL=" + driver.getCurrentUrl(),
+                driver.getCurrentUrl().contains("/register"));
     }
 }
