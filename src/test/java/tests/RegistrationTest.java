@@ -28,7 +28,6 @@ public class RegistrationTest extends BaseUiTest {
 
         api.deleteUser(registeredAccessToken);
 
-        // чтобы следующий тест случайно не унаследовал данные
         registeredEmail = null;
         registeredPassword = null;
         registeredAccessToken = null;
@@ -57,18 +56,14 @@ public class RegistrationTest extends BaseUiTest {
 
         RegistrationPage reg = openRegisterForm(baseUrl);
 
-        // Регистрация
         reg.fillForm(name, registeredEmail, registeredPassword);
         reg.clickRegister();
 
-        // Не должно быть ошибки про пароль
         reg.assertNoInvalidPasswordError();
 
-        // После успешной регистрации возвращает на логин — проверяем форму логина
         LoginPage loginAfter = new LoginPage(driver);
         loginAfter.assertLoginFormVisible();
 
-        // заранее получим токен, чтобы @After точно удалил
         registeredAccessToken = api.loginAndGetAccessToken(registeredEmail, registeredPassword);
     }
 
@@ -85,9 +80,6 @@ public class RegistrationTest extends BaseUiTest {
         reg.fillForm(name, registeredEmail, registeredPassword);
         reg.clickRegister();
 
-        // Тут наоборот: ошибка ДОЛЖНА появиться
-        // (В твоём PageObject есть только assertNoInvalidPasswordError(),
-        // поэтому проверим через URL + простой assert, и добавим в RegistrationPage отдельный метод на шаге 2.1 ниже)
         assertTrue("Ожидали остаться на странице /register при коротком пароле. URL=" + driver.getCurrentUrl(),
                 driver.getCurrentUrl().contains("/register"));
     }
