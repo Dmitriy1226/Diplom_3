@@ -8,40 +8,28 @@ public class LoginTest extends BaseUiTest {
 
     @Test
     public void loginFromMainPageButton() {
-        String baseUrl = System.getProperty("baseUrl", "https://stellarburgers.education-services.ru/");
-
-        // Берём креды из пользователя, которого создали в BaseUiTest через API
-        String email = user.getEmail();
-        String password = user.getPassword();
-
         MainPage main = new MainPage(driver);
-        main.open(baseUrl);
-        main.goToLogin(baseUrl);
+        main.open(BASE_URL);
+        main.goToLogin(BASE_URL);
 
         LoginPage login = new LoginPage(driver);
         login.assertLoginFormVisible();
 
-        login.fillLoginForm(email, password);
+        login.fillLoginForm(user.getEmail(), user.getPassword());
         login.submitLogin();
         login.assertLoginSuccess();
     }
 
     @Test
     public void loginFromAccountButton() {
-        String baseUrl = System.getProperty("baseUrl", "https://stellarburgers.education-services.ru/");
-
-        // Берём креды из пользователя, которого создали в BaseUiTest через API
-        String email = user.getEmail();
-        String password = user.getPassword();
-
         MainPage main = new MainPage(driver);
-        main.open(baseUrl);
-        main.goToAccountOrLogin(baseUrl);
+        main.open(BASE_URL);
+        main.goToAccountOrLogin(BASE_URL);
 
         LoginPage login = new LoginPage(driver);
         login.assertLoginFormVisible();
 
-        login.fillLoginForm(email, password);
+        login.fillLoginForm(user.getEmail(), user.getPassword());
         login.submitLogin();
         login.assertLoginSuccess();
     }
