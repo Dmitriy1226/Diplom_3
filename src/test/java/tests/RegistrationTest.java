@@ -1,18 +1,38 @@
 package tests;
 
+import org.junit.After;
 import org.junit.Test;
 import pages.LoginPage;
 import pages.MainPage;
 import pages.RegistrationPage;
+import support.ApiUserHelper;
 
 public class RegistrationTest extends BaseUiTest {
 
+    private final ApiUserHelper api = new ApiUserHelper();
+
+    private String registeredEmail;
+    private String registeredPassword;
+    private String registeredAccessToken;
+
+    @After
+    public void cleanRegisteredUser() {
+        // удаляем пользователя, которого создали в этом тесте через UI
+        if (registeredAccessToken == null
+                && registeredEmail != null
+                && registeredPassword != null) {
+            registeredAccessToken = api.loginAndGetAccessToken(registeredEmail, registeredPassword);
+        }
+
+        api.deleteUser(registeredAccessToken);
+    }
+
     @Test
     public void registrationShouldBeSuccessful() {
-        String baseUrl = System.getProperty("baseUrl", "https://stellarburgers.education-services.ru/");
+        String baseUrl = BASE_URL; // берём из BaseUiTest (ты уже вынес в константу)
 
-        String email = "test_" + System.currentTimeMillis() + "@mail.ru";
-        String password = "123456";
+        registeredEmail = "test_" + System.currentTimeMillis() + "@mail.ru";
+        registeredPassword = "123456";
         String name = "Test User";
 
         MainPage main = new MainPage(driver);
@@ -30,7 +50,7 @@ public class RegistrationTest extends BaseUiTest {
         reg.waitForOpen();
 
         // 4) Регистрация
-        reg.fillForm(name, email, password);
+        reg.fillForm(name, registeredEmail, registeredPassword);
         reg.clickRegister();
 
         // 5) Проверяем, что не показалась ошибка "Некорректный пароль"
@@ -39,5 +59,8 @@ public class RegistrationTest extends BaseUiTest {
         // 6) После успешной регистрации возвращает на логин — проверяем форму логина
         LoginPage loginAfter = new LoginPage(driver);
         loginAfter.assertLoginFormVisible();
+
+        // 7) (опционально) заранее получим токен, чтобы @After точно удалил
+        registeredAccessToken = api.loginAndGetAccessToken(registeredEmail, registeredPassword);
     }
 }
