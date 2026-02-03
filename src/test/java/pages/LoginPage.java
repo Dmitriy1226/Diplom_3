@@ -34,6 +34,10 @@ public class LoginPage {
             "//a[contains(@href,'/register') or contains(.,'Зарегистр') or contains(.,'Register')]"
     );
 
+    private final By forgotPasswordLink = By.xpath(
+            "//a[contains(@href,'/forgot-password') or contains(.,'Восстанов') or contains(.,'Forgot')]"
+    );
+
     private final By incorrectPasswordError = By.xpath(
             "//*[contains(.,'Некорректный пароль') or contains(.,'Incorrect password')]" +
                     " | //p[contains(@class,'input__error') and (contains(.,'парол') or contains(.,'password'))]"
@@ -153,6 +157,11 @@ public class LoginPage {
     @Step("Перейти по ссылке 'Зарегистрироваться'")
     public void clickRegisterLink() {
         clickStable(registerLink);
+    }
+
+    @Step("Перейти по ссылке 'Восстановить пароль'")
+    public void clickForgotPasswordLink() {
+        clickStable(forgotPasswordLink);
     }
 
     // ---- helpers ----

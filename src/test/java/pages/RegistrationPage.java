@@ -25,6 +25,9 @@ public class RegistrationPage {
     private final By registerButton =
             By.xpath("//button[.//span[contains(.,'Зарегистрироваться')] or contains(.,'Зарегистрироваться')]");
 
+    private final By loginLink =
+            By.xpath("//a[contains(@href,'/login') or contains(.,'Войти') or contains(.,'Log in')]");
+
     public RegistrationPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
@@ -80,6 +83,18 @@ public class RegistrationPage {
             String text = errors.get(0).getText();
             Assert.fail("Появилась ошибка про пароль: '" + text +
                     "'. Пароль должен быть не менее 6 символов. URL=" + driver.getCurrentUrl());
+        }
+    }
+
+    @Step("Перейти по ссылке 'Войти' со страницы регистрации")
+    public void clickLoginLink() {
+        waitForOpen();
+        try {
+            WebElement link = wait.until(ExpectedConditions.elementToBeClickable(loginLink));
+            clickSmart(link);
+        } catch (TimeoutException e) {
+            dumpState("clickLoginLink() TIMEOUT");
+            throw e;
         }
     }
 
