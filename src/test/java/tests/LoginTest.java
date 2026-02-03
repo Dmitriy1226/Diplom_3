@@ -9,8 +9,10 @@ public class LoginTest extends BaseUiTest {
     @Test
     public void loginFromMainPageButton() {
         String baseUrl = System.getProperty("baseUrl", "https://stellarburgers.education-services.ru/");
-        String email = System.getProperty("userEmail");
-        String password = System.getProperty("userPassword");
+
+        // Берём креды из пользователя, которого создали в BaseUiTest через API
+        String email = user.getEmail();
+        String password = user.getPassword();
 
         MainPage main = new MainPage(driver);
         main.open(baseUrl);
@@ -27,8 +29,10 @@ public class LoginTest extends BaseUiTest {
     @Test
     public void loginFromAccountButton() {
         String baseUrl = System.getProperty("baseUrl", "https://stellarburgers.education-services.ru/");
-        String email = System.getProperty("userEmail");
-        String password = System.getProperty("userPassword");
+
+        // Берём креды из пользователя, которого создали в BaseUiTest через API
+        String email = user.getEmail();
+        String password = user.getPassword();
 
         MainPage main = new MainPage(driver);
         main.open(baseUrl);
