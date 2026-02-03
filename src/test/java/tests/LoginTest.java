@@ -18,7 +18,10 @@ public class LoginTest extends BaseUiTest {
 
         LoginPage login = new LoginPage(driver);
         login.assertLoginFormVisible();
-        login.login(email, password);
+
+        login.fillLoginForm(email, password);
+        login.submitLogin();
+        login.assertLoginSuccess();
     }
 
     @Test
@@ -33,6 +36,9 @@ public class LoginTest extends BaseUiTest {
 
         LoginPage login = new LoginPage(driver);
         login.assertLoginFormVisible();
-        login.login(email, password);
+
+        login.fillLoginForm(email, password);
+        login.submitLogin();
+        login.assertLoginSuccess();
     }
 }

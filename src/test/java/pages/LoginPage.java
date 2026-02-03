@@ -34,7 +34,6 @@ public class LoginPage {
             "//a[contains(@href,'/register') or contains(.,'Зарегистр') or contains(.,'Register')]"
     );
 
-    // Важное: сообщение об ошибке при неверном пароле
     private final By incorrectPasswordError = By.xpath(
             "//*[contains(.,'Некорректный пароль') or contains(.,'Incorrect password')]" +
                     " | //p[contains(@class,'input__error') and (contains(.,'парол') or contains(.,'password'))]"
@@ -88,8 +87,10 @@ public class LoginPage {
         }
     }
 
-    @Step("Войти: email={email}")
-    public void login(String email, String password) {
+    // ====== A7: разделили на действие и проверку ======
+
+    @Step("Заполнить форму логина: email={email}")
+    public void fillLoginForm(String email, String password) {
         waitForPageLoaded();
 
         WebElement emailEl = wait.until(ExpectedConditions.visibilityOfElementLocated(emailInput));
@@ -101,12 +102,16 @@ public class LoginPage {
         passEl.click();
         passEl.clear();
         passEl.sendKeys(password);
+    }
 
+    @Step("Нажать кнопку 'Войти'")
+    public void submitLogin() {
+        waitForPageLoaded();
         clickStable(submitButton);
+    }
 
-        // Ждём одно из двух:
-        // 1) успешный редирект с /login
-        // 2) появление сообщения о неверном пароле
+    @Step("Ожидать завершения логина: редирект или ошибка")
+    public void waitForLoginResult() {
         boolean finished = wait.until(d -> {
             try {
                 String u = d.getCurrentUrl();
@@ -121,12 +126,28 @@ public class LoginPage {
         if (!finished) {
             Assert.fail("После нажатия 'Войти' ничего не произошло. URL=" + safeUrl());
         }
+    }
 
-        // Если остались на /login и видим ошибку — падаем с понятным сообщением
+    @Step("Проверить успешный логин")
+    public void assertLoginSuccess() {
+        waitForLoginResult();
+
         if (safeUrl().contains("/login") && isDisplayed(incorrectPasswordError)) {
-            Assert.fail("Логин не удался: на странице показано 'Некорректный пароль'. " +
-                    "Проверь -DuserEmail и -DuserPassword. URL=" + safeUrl());
+            Assert.fail("Логин не удался: отображается ошибка 'Некорректный пароль'. " +
+                    "Проверь email/password. URL=" + safeUrl());
         }
+
+        if (safeUrl().contains("/login")) {
+            Assert.fail("Остались на странице /login. Логин не выполнен. URL=" + safeUrl());
+        }
+    }
+
+    @Step("Войти: email={email}")
+    public void login(String email, String password) {
+        // оставим удобный “комбо”-метод, но теперь он просто вызывает отдельные шаги
+        fillLoginForm(email, password);
+        submitLogin();
+        assertLoginSuccess();
     }
 
     @Step("Перейти по ссылке 'Зарегистрироваться'")
