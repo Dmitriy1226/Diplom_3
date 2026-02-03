@@ -30,37 +30,11 @@ public class AuthClient extends RestClient {
                 .post(LOGIN);
     }
 
-    @Step("API: Получить данные пользователя")
-    public Response getUser(String accessToken) {
-        return given()
-                .spec(authSpec(accessToken))
-                .when()
-                .get(USER);
-    }
-
-    @Step("API: Обновить данные пользователя")
-    public Response patchUser(String accessToken, Object body) {
-        return given()
-                .spec(authSpec(accessToken))
-                .body(body)
-                .when()
-                .patch(USER);
-    }
-
     @Step("API: Удалить пользователя")
     public Response deleteUser(String accessToken) {
         return given()
                 .spec(authSpec(accessToken))
                 .when()
                 .delete(USER);
-    }
-
-    @Step("API: Логаут пользователя")
-    public Response logout(Object body) {
-        return given()
-                .spec(baseSpec())
-                .body(body)
-                .when()
-                .post(LOGOUT);
     }
 }
